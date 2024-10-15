@@ -33,12 +33,14 @@ ggplot(white_wine, aes(x = quality)) +
 ```
 
 ## Data transformation
+
 ```{r}
 #| message: false
 library(dplyr)
 ```
 
-### Column extraction 
+### Column extraction
+
 ```{r}
 class(white_wine)
 ## class + column extraction
@@ -55,13 +57,11 @@ white_wine |>
 class(pull(white_wine, quality))
 ```
 
-With `dplyr`, `pull()` is the column extraction function, somewhat similar to the
-dollar `$` operator and to the double bracket `[[]]`. 
-
+With `dplyr`, `pull()` is the column extraction function, somewhat similar to the dollar `$` operator and to the double bracket `[[]]`.
 
 ### Column recoding
-This ggplot call gives a warning because `quality` is numeric which is not
-supported for bar filling in `geom_bar()`.
+
+This ggplot call gives a warning because `quality` is numeric which is not supported for bar filling in `geom_bar()`.
 
 ```{r}
 #| eval: false
@@ -69,7 +69,6 @@ supported for bar filling in `geom_bar()`.
 ggplot(white_wine, aes(x = quality, fill = quality)) +
   geom_bar()
 ```
-
 
 ```{r}
 #| eval: false
@@ -94,6 +93,7 @@ ggplot(white_wine, aes(x = quality, fill = quality)) +
 ```
 
 ### Computing new columns
+
 This is again a task for `mutate()`.
 
 ```{r}
@@ -103,7 +103,9 @@ white_wine <- white_wine |>
 ```
 
 ## Sub-setting
+
 ### Selecting columns
+
 Column sub-setting is done with the `select()` function.
 
 ```{r}
@@ -111,9 +113,7 @@ white_wine |>
   select(`fixed acidity`, `volatile acidity`, `citric acid`, pH)
 ```
 
-Side note: we can display nicely data frames with the `knitr::kable()` function
-but the original data frame is too big, so we select the first 10 rows with
-`slice()`. 
+Side note: we can display nicely data frames with the `knitr::kable()` function but the original data frame is too big, so we select the first 10 rows with `slice()`.
 
 ```{r}
 #| message: false
@@ -122,6 +122,7 @@ white_wine |>
   slice(1:10) |>
   knitr::kable()
 ```
+
 Positional selection based on the indices of the columns.
 
 ```{r}
@@ -130,8 +131,7 @@ white_wine |>
   select(1:3)
 ```
 
-Columns can also be selected based on conditions on their names or on their
-nature. 
+Columns can also be selected based on conditions on their names or on their nature.
 
 ```{r}
 #| eval: false
@@ -155,7 +155,7 @@ white_wine |>
 
 ### Selecting rows
 
-Simple selection is based on indices with `slice()`. 
+Simple selection is based on indices with `slice()`.
 
 ```{r}
 white_wine |> 
@@ -172,12 +172,15 @@ white_wine |>
   select(alcohol, quality, `citric acid`, `residual sugar`) |>
   knitr::kable()
 ```
+
 ### Simple application
+
 ```{r}
 ggplot(white_wine, aes(x=alcohol)) +
   geom_density(bw="sj") +
   geom_rug(alpha = 0.1)
 ```
+
 ```{r}
 white_wine |> 
   filter(alcohol >= 13, `citric acid` < 1) |>
@@ -193,6 +196,7 @@ white_wine |>
   geom_point(alpha=0.75) +
   scale_color_viridis_c()
 ```
+
 ```{r}
 white_wine |>
   mutate(`alcohol category` = case_when(alcohol <= 9 ~ "low",
@@ -205,4 +209,61 @@ white_wine |>
   scale_color_viridis_c() +
   facet_wrap(vars(`alcohol category`))
 ```
+
+## Aggregation functions
+
+A.k.a summary functions : turn a possibly long vector into a single value (still a vector!).
+
+-   Standard statistics: `max(), `min()` , `median()`, etc.
+-   Logical operations: `any()`and `all()`
+-   counts and ranks: `n()`
+
+### Simple summary use 
+Based on the `summarise()` functions or inside a `mutate()`call. 
+
+```{r}
+white_wine|> 
+  summarise(
+   med_alcohol = median(alcohol), 
+    sd(alcohol)
+  ) ## A |> f is equal to f(A) 
+```
+```{r}
+white_wine |> 
+  select (alcohol) |> 
+  mutate(m_a = median(alcohol))
+```
+```{r}
+white_wine |>
+  select (alcohol) |>
+  mutate(
+    na = (alcohol - mean (alcohol)) / sd(alcohol), 
+    na_r = (alcohol - median(alcohol)) / IQR(alcohol),
+         .keep = "none"
+         ) 
+```
+```{r}
+## récupérer 
+```
+
+### More complex summary functions 
+Essentially `quantile()`
+
+```{r}
+quantile(white_wine$`residual sugar`)
+```
+
+## rattraper 
+
+```{r}
+sugar_stats <- white_wine |>  
+  summarise (list(quantile(`residual sugar`)), 
+             mean(`residual sugar`))
+```
+
+
+
+
+
+
 
